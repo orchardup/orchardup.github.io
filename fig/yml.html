@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en-gb">
+  <head>
+    <meta charset="utf-8">
+    <title>fig.yml reference</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='http://fonts.googleapis.com/css?family=Lilita+One|Lato:300,400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/fig.css?20140807310261889396033">
+    <link rel="canonical" href="http://www.fig.sh/yml.html">
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo mobile-logo">
+        <a href="index.html">
+          <img src="img/logo.png">
+          Fig
+        </a>
+      </div>
+
+      <div class="content"><h1>fig.yml reference</h1>
+
+<p>Each service defined in <code>fig.yml</code> must specify exactly one of <code>image</code> or <code>build</code>. Other keys are optional, and are analogous to their <code>docker run</code> command-line counterparts.</p>
+
+<p>As with <code>docker run</code>, options specified in the Dockerfile (e.g. <code>CMD</code>, <code>EXPOSE</code>, <code>VOLUME</code>, <code>ENV</code>) are respected by default - you don&#39;t need to specify them again in <code>fig.yml</code>.</p>
+
+<h3>image</h3>
+
+<p>Tag or partial image ID. Can be local or remote - Fig will attempt to pull if it doesn&#39;t exist locally.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">image: ubuntu
+image: orchardup/postgresql
+image: a4bc65fd
+</code></pre></div>
+<h3>build</h3>
+
+<p>Path to a directory containing a Dockerfile. Fig will build and tag it with a generated name, and use that image thereafter.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">build: /path/to/build/dir
+</code></pre></div>
+<h3>command</h3>
+
+<p>Override the default command.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">command: bundle exec thin -p 3000
+</code></pre></div>
+<h3>links</h3>
+
+<p>Link to containers in another service. Optionally specify an alternate name for the link, which will determine how environment variables are prefixed, e.g. <code>db</code> -&gt; <code>DB_1_PORT</code>, <code>db:database</code> -&gt; <code>DATABASE_1_PORT</code></p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">links:
+ - db
+ - db:database
+ - redis
+</code></pre></div>
+<h3>ports</h3>
+
+<p>Expose ports. Either specify both ports (<code>HOST:CONTAINER</code>), or just the container port (a random host port will be chosen).</p>
+
+<p><strong>Note:</strong> When mapping ports in the <code>HOST:CONTAINER</code> format, you may experience erroneous results when using a container port lower than 60, because YAML will parse numbers in the format <code>xx:yy</code> as sexagesimal (base 60). For this reason, we recommend always explicitly specifying your port mappings as strings.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">ports:
+ - &quot;3000&quot;
+ - &quot;8000:8000&quot;
+ - &quot;49100:22&quot;
+ - &quot;127.0.0.1:8001:8001&quot;
+</code></pre></div>
+<h3>expose</h3>
+
+<p>Expose ports without publishing them to the host machine - they&#39;ll only be accessible to linked services. Only the internal port can be specified.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">expose:
+ - &quot;3000&quot;
+ - &quot;8000&quot;
+</code></pre></div>
+<h3>volumes</h3>
+
+<p>Mount paths as volumes, optionally specifying a path on the host machine (<code>HOST:CONTAINER</code>).</p>
+
+<p>Note: Mapping local volumes is currently unsupported on boot2docker. We recommend you use <a href="https://github.com/noplay/docker-osx">docker-osx</a> if want to map local volumes.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">volumes:
+ - /var/lib/mysql
+ - cache/:/tmp/cache
+</code></pre></div>
+<h3>volumes_from</h3>
+
+<p>Mount all of the volumes from another service or container.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">volumes_from:
+ - service_name
+ - container_name
+</code></pre></div>
+<h3>environment</h3>
+
+<p>Add environment variables. You can use either an array or a dictionary.</p>
+
+<p>Environment variables with only a key are resolved to their values on the machine Fig is running on, which can be helpful for secret or host-specific values.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">environment:
+  RACK_ENV: development
+  SESSION_SECRET:
+
+environment:
+  - RACK_ENV=development
+  - SESSION_SECRET
+</code></pre></div>
+<h3>net</h3>
+
+<p>Networking mode. Use the same values as the docker client <code>--net</code> parameter.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">net: &quot;bridge&quot;
+net: &quot;none&quot;
+net: &quot;container:[name or id]&quot;
+net: &quot;host&quot;
+</code></pre></div>
+<h3>dns</h3>
+
+<p>Custom DNS servers. Can be a single value or a list.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">dns: 8.8.8.8
+dns:
+  - 8.8.8.8
+  - 9.9.9.9
+</code></pre></div>
+<h3>working_dir, entrypoint, user, hostname, domainname, mem_limit, privileged</h3>
+
+<p>Each of these is a single value, analogous to its <a href="https://docs.docker.com/reference/run/">docker run</a> counterpart.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">working_dir: /code
+entrypoint: /code/entrypoint.sh
+user: postgresql
+
+hostname: foo
+domainname: foo.com
+
+mem_limit: 1000000000
+privileged: true
+</code></pre></div></div>
+
+      <div class="sidebar">
+        <h1 class="logo">
+          <a href="index.html">
+            <img src="img/logo.png">
+            Fig
+          </a>
+        </h1>
+
+        <ul class="nav">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="install.html">Install</a></li>
+          <li><a href="rails.html">Get started with Rails</a></li>
+          <li><a href="django.html">Get started with Django</a></li>
+          <li><a href="wordpress.html">Get started with Wordpress</a></li>
+        </ul>
+        <ul class="nav">
+          <li>Reference:</li>
+          <ul>
+            <li><a href="yml.html">fig.yml</a></li>
+            <li><a href="cli.html">Commands</a></li>
+            <li><a href="env.html">Environment variables</a></li>
+          </ul>
+        </ul>
+        <ul class="nav">
+          <li><a href="https://github.com/orchardup/fig">Fig on GitHub</a></li>
+          <li><a href="http://webchat.freenode.net/?channels=%23docker-fig&uio=d4">#docker-fig on Freenode</a></li>
+        </ul>
+
+        <p>Fig is a project from <a href="https://www.docker.com">Docker</a>.</p>
+
+        <div class="badges">
+          <iframe src="http://ghbtns.com/github-btn.html?user=orchardup&amp;repo=fig&amp;type=watch&amp;count=true" allowtransparency="true" frameborder="0" scrolling="0" width="100" height="20"></iframe>
+          <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://orchardup.github.io/fig/">Tweet</a>
+        </div>
+      </div>
+    </div>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-43996733-3', 'orchardup.github.io');
+      ga('send', 'pageview');
+
+    </script>
+  </body>
+</html>
